@@ -1,0 +1,45 @@
+services:
+  app:
+    build: .
+    container_name: l12-app
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+      - redis
+    networks: [laravel]
+
+  web:
+    image: nginx:1.27-alpine
+    container_name: l12-web
+    ports: ["8080:80"]
+    volumes:
+      - ./:/var/www/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on: [app]
+    networks: [laravel]
+
+  db:
+    image: postgres:16-alpine
+    container_name: l12-pg
+    environment:
+      POSTGRES_DB: laravel
+      POSTGRES_USER: laravel
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5433:5432"     # akses dari host: localhost:5433
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [laravel]
+
+  redis:
+    image: redis:7-alpine
+    container_name: l12-redis
+    ports: ["6379:6379"]
+    networks: [laravel]
+
+networks:
+  laravel:
+
+volumes:
+  pgdata:
