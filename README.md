@@ -62,7 +62,7 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 ## Project Setup (Docker) — Quick Start
 
-The following steps guide any developer who pulls this repository to run the app locally and hit the APIs.
+The following steps guide to run the app locally and hit the APIs.
 
 - Requirements
   - Docker Desktop (with WSL2 on Windows) and Docker Compose
