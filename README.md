@@ -123,6 +123,10 @@ Notes
 - Passwords are hashed automatically by the User model cast, so plain strings in the commands above will be safely encrypted.
 - If you need a clean slate: `docker compose exec app php artisan migrate:fresh --seed`
 
+## Unit Test
+- Run this command for testing
+ - `docker compose exec app php artisan test --testsuite=Feature`
+
 ## Common Commands
 
 - Start services: `docker compose up -d`
