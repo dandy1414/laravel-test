@@ -124,8 +124,7 @@ Notes
 - If you need a clean slate: `docker compose exec app php artisan migrate:fresh --seed`
 
 ## Unit Test
-- Run this command for testing
- - `docker compose exec app php artisan test --testsuite=Feature`
+- Run this command for testing : `docker compose exec app php artisan test --testsuite=Feature`
 
 ## Common Commands
 
