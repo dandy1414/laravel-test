@@ -38,16 +38,20 @@ class UserController extends Controller
 
     public function index(Request $request) {
         $request->validate([
-            'search' => 'nullable|string',
-            'page'   => 'nullable|integer|min:1',
-            'sortBy' => 'nullable|string|in:name,email,created_at',
-            'limit'  => 'nullable|integer|min:1|max:100',
+            'search'        => 'nullable|string',
+            'page'          => 'nullable|integer|min:1',
+            'sortBy'        => 'nullable|string|in:name,email,created_at',
+            'limit'         => 'nullable|integer|min:1|max:100',
+            'currentRole'   => 'nullable|string|in:administrator,manager,user',
+            'currentUserId' => 'nullable|integer|min:1',
         ]);
 
-        $search = (string) $request->query('search', '');
-        $sortBy = (string) $request->query('sortBy', 'created_at');
-        $page   = (int) ($request->query('page', 1));
-        $limit  = (int) ($request->query('limit', 10));
+        $search        = (string) $request->query('search', '');
+        $sortBy        = (string) $request->query('sortBy', 'created_at');
+        $page          = (int) ($request->query('page', 1));
+        $limit         = (int) ($request->query('limit', 10));
+        $currentRole   = (string) $request->query('currentRole', 'user');
+        $currentUserId = $request->has('currentUserId') ? (int) $request->query('currentUserId') : null;
 
         $query = User::query()
             ->where('active', true)
@@ -65,15 +69,14 @@ class UserController extends Controller
 
         $paginator = $query->paginate($limit, ['*'], 'page', max($page, 1));
 
-        $current = 'administrator';
-        $paginator->getCollection()->transform(function (User $user) use ($current) {
+        $paginator->getCollection()->transform(function (User $user) use ($currentRole, $currentUserId) {
             $canEdit = false;
-            if ($current) {
-                if ($current === 'administrator') {
-                    $canEdit = true;
-                } elseif ($current === 'manager') {
-                    $canEdit = ($user->role === 'user');
-                }
+            if ($currentRole === 'administrator') {
+                $canEdit = true;
+            } elseif ($currentRole === 'manager') {
+                $canEdit = ($user->role === 'user');
+            } elseif ($currentRole === 'user') {
+                $canEdit = ($currentUserId !== null && $currentUserId === (int) $user->id);
             }
 
             return [

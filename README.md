@@ -59,3 +59,73 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Project Setup (Docker) — Quick Start
+
+The following steps guide any developer who pulls this repository to run the app locally and hit the APIs.
+
+- Requirements
+  - Docker Desktop (with WSL2 on Windows) and Docker Compose
+  - Git and a REST client (Postman or curl)
+
+- Clone and boot
+  - Clone the repository and open the project directory
+  - Start the stack: `docker compose up -d --build`
+  - Services: `web` (Nginx on 8080), `app` (PHP-FPM), `db` (Postgres), `redis`
+
+- First-time application setup
+  - Copy env if missing: `docker compose exec app cp .env.example .env`
+  - Ensure key settings in `.env`:
+    - `APP_URL=http://localhost:8080`
+    - `DB_CONNECTION=pgsql`, `DB_HOST=db`, `DB_PORT=5432`
+    - `DB_DATABASE=laravel`, `DB_USERNAME=laravel`, `DB_PASSWORD=secret`
+  - Install Composer dependencies: `docker compose exec app composer install`
+  - Generate app key: `docker compose exec app php artisan key:generate`
+  - Run migrations only: `docker compose exec app php artisan migrate`
+
+- Verify
+  - Open: `http://localhost:8080` (Laravel welcome)
+  - List routes: `docker compose exec app php artisan route:list`
+  - Adminer (optional): `http://localhost:8081` (System: PostgreSQL, Server: `db`, DB: `laravel`, User/Pass: `laravel/secret`)
+
+## API Usage
+
+- Base URL: `http://localhost:8080/api`
+- Create User: `POST /users`
+  - Headers: `Accept: application/json`, `Content-Type: application/json`
+  - Body: `{"name":"user","email":"user@mail.com","password":"user12345"}`
+- Get Users: `GET /users`
+  - Query params:
+    - `search` (optional; name or email)
+    - `page` (default 1)
+    - `limit` (default 10, max 100)
+    - `sortBy` (`name|email|created_at`; default `created_at`)
+    - `currentRole` (`administrator|manager|user`; optional, default `user`)
+    - `currentUserId` (optional; used when `currentRole=user`)
+  - Response items include `orders_count` and `can_edit`.
+
+## Seed Users with Three Roles
+
+Create three users via API, then run the user seeder.
+
+- Create three role users (administrator, manager, user) using API:
+  - Administrator
+    - `curl -s -X POST http://localhost:8080/api/users -H "Accept: application/json" -H "Content-Type: application/json" -d '{"name":"Admin","email":"admin@example.com","password":"password123","role":"administrator"}'`
+  - Manager
+    - `curl -s -X POST http://localhost:8080/api/users -H "Accept: application/json" -H "Content-Type: application/json" -d '{"name":"Manager","email":"manager@example.com","password":"password123","role":"manager"}'`
+  - Regular user
+    - `curl -s -X POST http://localhost:8080/api/users -H "Accept: application/json" -H "Content-Type: application/json" -d '{"name":"User","email":"user@example.com","password":"password123","role":"user"}'`
+
+- Run the order seeder after creating the users:
+  - `docker compose exec app php artisan db:seed --class=OrderSeeder`
+
+Notes
+- Passwords are hashed automatically by the User model cast, so plain strings in the commands above will be safely encrypted.
+- If you need a clean slate: `docker compose exec app php artisan migrate:fresh --seed`
+
+## Common Commands
+
+- Start services: `docker compose up -d`
+- Stop: `docker compose down`
+- Tail Nginx logs: `docker compose logs -f web`
+- Tail Laravel log: `docker compose exec app tail -f storage/logs/laravel.log`
